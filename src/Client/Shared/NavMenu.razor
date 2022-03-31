@@ -18,7 +18,7 @@
     }
     <MudNavLink Href="/account" Icon="@Icons.Filled.ManageAccounts">@L["Account"]</MudNavLink>
     <MudNavLink Href="/audit-logs" Icon="@Icons.Material.Filled.SecurityUpdateGood">@L["Logs"]</MudNavLink>
-    @if (_canViewProducts || _canViewBrands)
+    @if (_canViewProducts || _canViewBrands || _canViewGameTypes)
     {
         <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="ml-4 my-3">@L["Management"]</MudText>
         <MudNavGroup Title="@L["Catalog"]" Expanded Icon="@Icons.Filled.AddBox">
@@ -32,6 +32,12 @@
             {
                 <MudNavLink Href="/catalog/brands" Icon="@Icons.Filled.ShoppingBag" Class="fsh-nav-child">
                     @L["Brands"]
+                </MudNavLink>
+            }
+             @if (_canViewGameTypes)
+            {
+                <MudNavLink Href="/catalog/gametypes" Icon="@Icons.Filled.ShoppingBag" Class="fsh-nav-child">
+                    @L["Game types"]
                 </MudNavLink>
             }
         </MudNavGroup>

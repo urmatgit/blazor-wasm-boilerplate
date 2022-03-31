@@ -1,0 +1,57 @@
+﻿@page "/catalog/gametypes"
+@attribute [MustHavePermission(FSHAction.View, FSHResource.GameTypes)]
+
+@inject IStringLocalizer<GameTypes> L
+@inject IGameTypesClient GameTypesClient
+
+<FshTitle Title="@L["GameTypes"]" Description="@L["Manage GameTypes."]" />
+
+<EntityTable TEntity="GameTypeDto" TId="Guid" TRequest="UpdateGameTypeRequest" Context="@Context">
+
+    <EditFormContent>
+        @if (!Context.AddEditModal.IsCreate)
+        {
+            <MudItem xs="12" md="6">
+                <MudTextField Value="context.Id" ReadOnly DisableUnderLine Label="@L[$"GameType Id"]" />
+            </MudItem>
+        }
+        <MudItem xs="12" md="6">
+            <MudTextField T="string" For="@(() => context.Name)" @bind-Value="context.Name" Label="@L["Name"]" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField For="@(() => context.Description)" @bind-Value="context.Description"
+                Label="@L["Description"]" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField For="@(() => context.Rules)" @bind-Value="context.Rules"
+                Label="@L["Rules"]" />
+        </MudItem>
+    </EditFormContent>
+
+</EntityTable>
+
+@code
+{
+    protected EntityServerTableContext<GameTypeDto, Guid, UpdateGameTypeRequest> Context { get; set; } = default!;
+
+    protected override void OnInitialized() =>
+        Context = new(
+            entityName: L["GameType"],
+            entityNamePlural: L["GameTypes"],
+            entityResource: FSHResource.GameTypes,
+            fields: new()
+            {
+                new(gameType => gameType.Id, L["Id"], "Id"),
+                new(gameType => gameType.Name, L["Name"], "Name"),
+                new(gameType => gameType.Description, L["Description"], "Description"),
+                new(gameType => gameType.Rules, L["Rules"], "Rules"),
+            },
+            idFunc: gameType => gameType.Id,
+            searchFunc: async filter => (await GameTypesClient
+                .SearchAsync(filter.Adapt<SearchGameTypesRequest>()))
+                .Adapt<PaginationResponse<GameTypeDto>>(),
+            createFunc: async gameType => await GameTypesClient.CreateAsync(gameType.Adapt<CreateGameTypeRequest>()),
+            updateFunc: async (id, gameType) => await GameTypesClient.UpdateAsync(id, gameType),
+            deleteFunc: async id => await GameTypesClient.DeleteAsync(id),
+            exportAction: string.Empty);
+}
