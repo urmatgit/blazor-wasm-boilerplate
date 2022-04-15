@@ -1,0 +1,54 @@
+﻿@page "/catalog/gametypes"
+@attribute [MustHavePermission(FSHAction.View, FSHResource.GameFilters)]
+
+@inject IStringLocalizer<GameFilters> L
+@inject IGameFiltersClient GameFiltersClient
+
+<FshTitle Title="@L["GameFilters"]" Description="@L["Manage GameFilters."]" />
+
+<EntityTable TEntity="GameFilterDto" TId="Guid" TRequest="UpdateGameFilterRequest" Context="@Context">
+
+    <EditFormContent>
+        @if (!Context.AddEditModal.IsCreate)
+        {
+            <MudItem xs="12" md="6">
+                <MudTextField Value="context.Id" ReadOnly DisableUnderLine Label="@L[$"GameFilter Id"]" />
+            </MudItem>
+        }
+        <MudItem xs="12" md="6">
+            <MudTextField T="string" For="@(() => context.Name)" @bind-Value="context.Name" Label="@L["Name"]" />
+        </MudItem>
+        
+        <MudItem xs="12" md="6">
+            <MudTextField For="@(() => context.Color)" @bind-Value="context.Color"
+                Label="@L["Color"]" />
+        </MudItem>
+    </EditFormContent>
+
+</EntityTable>
+
+@code
+{
+    protected EntityServerTableContext<GameFilterDto, Guid, UpdateGameFilterRequest> Context { get; set; } = default!;
+
+    protected override void OnInitialized() =>
+        Context = new(
+            entityName: L["GameFilter"],
+            entityNamePlural: L["GameFilters"],
+            entityResource: FSHResource.GameFilters,
+            fields: new()
+            {
+                new(gameFilter => gameFilter.Id, L["Id"], "Id"),
+                new(gameFilter => gameFilter.Name, L["Name"], "Name"),
+                
+                new(gameFilter => gameFilter.Rules, L["Color"], "Color"),
+            },
+            idFunc: gameFilter => gameFilter.Id,
+            searchFunc: async filter => (await GameFiltersClient
+                .SearchAsync(filter.Adapt<SearchGameFiltersRequest>()))
+                .Adapt<PaginationResponse<GameFilterDto>>(),
+            createFunc: async gameFilter => await GameFiltersClient.CreateAsync(gameFilter.Adapt<CreateGameFilterRequest>()),
+            updateFunc: async (id, gameFilter) => await GameFiltersClient.UpdateAsync(id, gameFilter),
+            deleteFunc: async id => await GameFiltersClient.DeleteAsync(id),
+            exportAction: string.Empty);
+}
